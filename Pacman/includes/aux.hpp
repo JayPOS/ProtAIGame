@@ -16,5 +16,7 @@ using ii=pair<int, int>;
 
 bool write_texture();
 bool write_binary(int type);
+void read_texture();
+void read_binary();
 
 #endif

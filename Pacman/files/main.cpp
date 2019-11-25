@@ -5,6 +5,7 @@
 #include <cstdlib>
 
 
+
 int main(int argc, char **argv)
 {
     if(init())
@@ -20,10 +21,33 @@ int main(int argc, char **argv)
                 cout << "3Erro!!! Parando programa...\n";
                 exit(1);
             }
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
             SDL_Event e;
             bool on = true;
-            char aux[70] = "/home/jorge/JayP_Programs/ProtAIGame/Pacman/pacman_images/mapa.png";
-            loadTextureFromIMG(editor, aux, janela, renderer);
+            char aux[70] = "./pacman_images/mapa.png";
+
+            loadTextureFromIMG(editor, aux, renderer);
+            editor = inicia_mapa(editor);
+
+            FILE *file = fopen("./info/teste.txt", "w");
+            char teste[200];
+            for (int i = 0; i < 31; i++)
+            {
+                // COLUNAS
+                for (int j = 0; j < 28; j++)
+                {
+                    sprintf(teste, "Rects x,y,w,h = %d,%d,%d,%d\n", editor->squares[i][j].x
+                    , editor->squares[i][j].y, editor->squares[i][j].w, editor->squares[i][j].h);
+                    fprintf(file, "%s", teste);
+                    cout << editor->id_squares[i][j] << "\nRects = ";
+                    cout << editor->squares[i][j].x << " ";
+                    cout << editor->squares[i][j].y << " ";
+                    cout << editor->squares[i][j].w << " ";
+                    cout << editor->squares[i][j].h << "\n";
+                }
+            }
+            fclose(file);
+
             while (on)
             {
                 if (getMapa(editor) == NULL)
@@ -32,16 +56,7 @@ int main(int argc, char **argv)
                     on = false;
                 }
                 desenhaEditor(editor, renderer);
-                // char aux[70] = "/home/jorge/JayP_Programs/ProtAIGame/Pacman/pacman_images/mapa.png";
-                // SDL_Surface *surface= NULL;
-                // surface= IMG_Load(aux);
-                // if (surface == NULL)
-                // {
-                //     cout << "Erro!!! Parando programa...\n";
-                //     on = false;
-                // }
-
-                events(&e, &janela, on);
+                eventosEditor(&editor, renderer, &e, on);
             }
             SDL_DestroyRenderer(renderer);
             renderer = NULL;

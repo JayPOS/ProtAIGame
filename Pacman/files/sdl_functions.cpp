@@ -32,7 +32,7 @@ bool cria_janela(SDL_Window **janela)
 		
         return true;
 }
-void events(SDL_Event *e, SDL_Window **janela, bool &on)
+void events(SDL_Event *e, bool &on)
 {
 	while (SDL_PollEvent(e) != 0 )
 	{
