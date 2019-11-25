@@ -13,9 +13,11 @@ struct pacman
     int lifes;
     // controle de movimento
     int pos_x, pos_y;
+    int velocidade;
+    int direção_vert;
+    int direção_hori;
 };
 
 Pacman* carregaPacman(Pacman *pacman, SDL_Renderer *renderer);
-void movimentos(Pacman *pacman);
 
 #endif
