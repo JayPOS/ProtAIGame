@@ -4,11 +4,6 @@
 #include "pacman.hpp"
 #include <cstdlib>
 
-const int WALL = 0;
-const int FOOD = 1;
-const int STREET = 2;
-const int BIG_FOOD = 3;
-
 const int LINHAS = 31;
 const int COLUNAS = 28;
 

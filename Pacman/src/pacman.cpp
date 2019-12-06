@@ -4,6 +4,15 @@
 Pacman *carregaPacman(Pacman *pacman, SDL_Renderer *renderer)
 {
     pacman = new Pacman;
+
+    // SETANDO PARAMETROS;
+    pacman->pos_x = 16;
+    pacman->pos_y = 16;
+    pacman->direcao = STOP;
+    pacman->lifes = 3;
+    pacman->score = 0;
+    pacman->velocidade = 2;
+    // CARREGANDO IMAGENS;
     char path[40] = "./pacman_images/pacmanxcf.png";
     SDL_Surface *surface = NULL;
 

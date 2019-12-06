@@ -8,8 +8,6 @@
 const int TEXTURE = 1;
 const int CLASS = 2;
 const int FASE = 3;
-const int PLAYER = 4;
-const int GHOST = 5;
 
 using namespace std;
 using ii=pair<int, int>;

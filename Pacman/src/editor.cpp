@@ -149,6 +149,10 @@ void desenhaEditor(Editor *editor, SDL_Renderer *renderer)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
     desenhaLinhas(editor, renderer);
     estadoEditor(editor, renderer);
+    // SDL_Rect aux = {editor->squares[1][3].x-7, editor->squares[1][3].y-9,
+    //     32, 32};
+    // SDL_RenderCopy(renderer, editor->pacman->texture,
+    //      &editor->pacman->frames[0], &aux);
     SDL_RenderPresent(renderer);
 }
 

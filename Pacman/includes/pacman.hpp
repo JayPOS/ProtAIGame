@@ -12,10 +12,10 @@ struct pacman
     int score;
     int lifes;
     // controle de movimento
+    int pos_i, pos_j;
     int pos_x, pos_y;
     int velocidade;
-    int direção_vert;
-    int direção_hori;
+    int direcao;
 };
 
 Pacman* carregaPacman(Pacman *pacman, SDL_Renderer *renderer);
