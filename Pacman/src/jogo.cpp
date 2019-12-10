@@ -160,7 +160,7 @@ void desenharJogo(Jogo *jogo, SDL_Renderer *renderer)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 
     desenharGhost(jogo->squares, jogo->inimigos, renderer);
-    desenhaLinhas(jogo, renderer);
+    // desenhaLinhas(jogo, renderer);
 
     SDL_RenderPresent(renderer);
 }
