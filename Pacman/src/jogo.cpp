@@ -80,9 +80,12 @@ Jogo *carregarJogo(Jogo *jogo, char *path, SDL_Renderer *renderer)
 
             fread(&jogo->id_squares[i][j], sizeof(int), 1, file);
             cout << jogo->id_squares[i][j] << " ";
+            if (jogo->id_squares[i][j] == FOOD || jogo->id_squares[i][j] == BIG_FOOD)
+                jogo->total_dots++;
         }
         cout << "\n";
     }
+    jogo->dots = 0;
     cout << "\n";
     
     for (int i = 0; i < 4; i++)
@@ -317,6 +320,7 @@ bool colisao(Jogo *jogo)
                             jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == BIG_FOOD)
                             {
                                 jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] = STREET;
+                                jogo->dots++;
                             }
                     }
                 }
@@ -351,6 +355,7 @@ bool colisao(Jogo *jogo)
                         jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == BIG_FOOD)
                         {
                             jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] = STREET;
+                            jogo->dots++;
                         }
                     }
                 }
@@ -384,6 +389,7 @@ bool colisao(Jogo *jogo)
                         jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == BIG_FOOD)
                         {
                             jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] = STREET;
+                            jogo->dots++;
                         }
                     }
                 }
@@ -417,6 +423,7 @@ bool colisao(Jogo *jogo)
                         jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == BIG_FOOD)
                         {
                             jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] = STREET;
+                            jogo->dots++;
                         }
                     }
                 }
@@ -439,6 +446,22 @@ bool colisao(Jogo *jogo)
 
 void eventosJogo(Jogo **jogo, bool &on)
 {
+    if ((*jogo)->dots == (*jogo)->total_dots)
+    {
+        SDL_Delay(1000);
+        (*jogo)->dots = 0;
+        FILE *file = fopen("./info/squares", "rb");
+        for (int i = 0; i < 31; i++)
+        {
+            // COLUNAS
+            for (int j = 0; j < 28; j++)
+            {
+                // cout << " aa" << " i = " << i << " j = " << j << "\n";
+                fread(&(*jogo)->id_squares[i][j], sizeof(int), 1, file);
+            }
+        }
+        fclose(file);
+    }
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0)
     {

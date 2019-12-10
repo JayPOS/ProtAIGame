@@ -15,7 +15,8 @@ struct jogo
     SDL_Texture **comidas;
     SDL_Rect squares[31][28];
     int id_squares[31][28];
-
+    int dots;
+    int total_dots;
     int prox_move;
 };
 
