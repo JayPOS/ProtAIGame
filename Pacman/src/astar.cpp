@@ -29,7 +29,7 @@ No criaInicio(int i, int j, int i_final, int j_final)
     inicio.w = manhattan(inicio, aux);
     inicio.pai.first = inicio.i;
     inicio.pai.second = inicio.j;
-    cout << "aaa\n";
+    // cout << "aaa\n";
     return inicio;
 }
 
@@ -46,7 +46,7 @@ No iniciaNo(int i, int j, No inicio, No dest, No pai)
 
 void abreNo(No inicio, No dest, No atual, priority_queue<No, vector<No>, decltype(comp)> &fila, vector<No> &pilha, int id_squares[31][28])
 {
-    cout << "\n\natual = " << atual.i << " " << atual.j << " " << atual.w << "\n";
+    // cout << "\n\natual = " << atual.i << " " << atual.j << " " << atual.w << "\n";
     if (atual.i < 30 && id_squares[atual.i+1][atual.j] != WALL || 
         (atual.i+1 == 12 && (atual.j == 13 || atual.j == 14)))
     {
@@ -65,7 +65,7 @@ void abreNo(No inicio, No dest, No atual, priority_queue<No, vector<No>, decltyp
         if (achou == 0)
         {
             fila.push(aux);
-            cout << "aux = " << aux.i << " " << aux.j << " " << aux.w << " right\n";
+            // cout << "aux = " << aux.i << " " << aux.j << " " << aux.w << " right\n";
         }
     }
     if (atual.i > 0 && id_squares[atual.i-1][atual.j] != WALL ||
@@ -86,7 +86,7 @@ void abreNo(No inicio, No dest, No atual, priority_queue<No, vector<No>, decltyp
         if (achou == 0)
         {
             fila.push(aux);
-            cout << "aux = " << aux.i << " " << aux.j << " " << aux.w << " left\n";
+            // cout << "aux = " << aux.i << " " << aux.j << " " << aux.w << " left\n";
         }
     }
     if (atual.j < 28 && id_squares[atual.i][atual.j+1] != WALL ||
@@ -100,7 +100,7 @@ void abreNo(No inicio, No dest, No atual, priority_queue<No, vector<No>, decltyp
             {
                 if (it->i == aux.i && it->j == aux.j)
                 {
-                    cout << "entrou\n";
+                    // cout << "entrou\n";
                     achou = 1;
                 }
             }
@@ -108,7 +108,7 @@ void abreNo(No inicio, No dest, No atual, priority_queue<No, vector<No>, decltyp
         if (achou == 0)
         {
             fila.push(aux);
-            cout << "aux = " << aux.i << " " << aux.j << " " << aux.w << " down\n";
+            // cout << "aux = " << aux.i << " " << aux.j << " " << aux.w << " down\n";
         }
     }
     if (atual.j > 0 && id_squares[atual.i][atual.j-1] != WALL || 
@@ -130,7 +130,7 @@ void abreNo(No inicio, No dest, No atual, priority_queue<No, vector<No>, decltyp
         if (achou == 0)
         {
             fila.push(aux);
-            cout << "aux = " << aux.i << " " << aux.j << " " << aux.w << " up\n";
+            // cout << "aux = " << aux.i << " " << aux.j << " " << aux.w << " up\n";
         }
     }
 }
@@ -154,11 +154,11 @@ vector<No> A_star(No inicio, No dest, int id_squares[31][28])
         abreNo(inicio, dest, atual, fila, lst_fechada, id_squares);
     }
     cout << "\nSAIU TOP = " << fila.top().i << " " << fila.top().j << " " << fila.top().w << endl;
-    for (auto it = lst_fechada.begin(); it != lst_fechada.end(); it++)
-    {
-        cout << "i,j,w = " << it->i << "," << it->j << "," << it->w << "\n";
-        cout << "pai i,j = " << it->pai.first << "," << it->pai.second << "\n\n";
-    }
+    // for (auto it = lst_fechada.begin(); it != lst_fechada.end(); it++)
+    // {
+    //     cout << "i,j,w = " << it->i << "," << it->j << "," << it->w << "\n";
+    //     cout << "pai i,j = " << it->pai.first << "," << it->pai.second << "\n\n";
+    // }
     return lst_fechada;
 }
 vector<No> cria_caminho(vector<No> &lst_fechada)

@@ -13,6 +13,7 @@
 #include <vector>
 #include <queue>
 #include <cmath>
+#include <cstdlib>
 
 const int WALL = 0;
 const int FOOD = 1;

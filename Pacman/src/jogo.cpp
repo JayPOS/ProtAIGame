@@ -1,18 +1,8 @@
 #include "../includes/jogo.hpp"
 
-ii center(Jogo *jogo)
+ii center(int x, int y, int w, int h)
 {
-    for (int i = 0; i < 4; i++)
-    {
-        
-        int auxX = jogo->inimigos[i].x;
-        int auxY = jogo->inimigos[i].y;
-
-        int squareX = jogo->squares[auxX][auxY].x;
-        int squareY = jogo->squares[auxX][auxY].y;
-        
-        return make_pair(squareX + 8, squareY + 8);
-    }
+    return make_pair(x+(w/2), y+(h/2));
 }
 Jogo *carregarJogo(Jogo *jogo, char *path, SDL_Renderer *renderer)
 {
@@ -31,12 +21,49 @@ Jogo *carregarJogo(Jogo *jogo, char *path, SDL_Renderer *renderer)
         cout << "Erro!!! Parando programa...\n";
     }
     SDL_FreeSurface(surface);
+    surface = NULL;
     
     jogo->pacman = carregaPacman(jogo->pacman, renderer);
     jogo->nivel = 1;
     jogo->prox_move = 0;
 
-    
+
+    jogo->comidas = (SDL_Texture **)malloc(sizeof(SDL_Texture*)*2);
+    surface = IMG_Load("./pacman_images/comida-pequena.png");
+    if (surface != NULL)
+    {
+        jogo->comidas[0] = NULL;
+        jogo->comidas[0] = SDL_CreateTextureFromSurface(renderer, surface);
+        if (jogo->comidas[0] == NULL)
+        {
+            cout << "Erro na textura comida-pequena\n";
+            exit(1);
+        }
+    }
+    else
+    {
+        cout << "Erro na surface comida-pequena\n";
+        exit(1);
+    }
+    SDL_FreeSurface(surface);
+    surface = NULL;
+
+    surface = IMG_Load("./pacman_images/grande.png");
+    if (surface != NULL)
+    {
+        jogo->comidas[1] =  NULL;
+        jogo->comidas[1] = SDL_CreateTextureFromSurface(renderer, surface);
+        if (jogo->comidas[1] == NULL)
+        {
+            cout << "Erro na textura comida grande\n";
+            exit(1);
+        }
+    }
+    else
+    {
+        cout << "Erro na surface comida-grande\n";
+        exit(1);
+    }
 
     // LINHAS
     FILE *file = fopen("./info/squares", "rb");
@@ -61,13 +88,36 @@ Jogo *carregarJogo(Jogo *jogo, char *path, SDL_Renderer *renderer)
     for (int i = 0; i < 4; i++)
     {
         jogo->inimigos[i] = criaFantasma(jogo->inimigos[i], renderer, i);
-        jogo->inimigos[i].x = 14; jogo->inimigos[i].i = (jogo->inimigos[i].x*16)-4;
-        jogo->inimigos[i].y = 12;
+        jogo->inimigos[i].i = 14; 
+        jogo->inimigos[i].j = 12; 
+        jogo->inimigos[i].x = jogo->squares[jogo->inimigos[i].i][jogo->inimigos[i].j].x-4;
+        jogo->inimigos[i].y = jogo->squares[jogo->inimigos[i].i][jogo->inimigos[i].j].y-4;
+        jogo->inimigos[i].prox = new No;
     }
 
     fclose(file);
 
     return jogo;
+}
+
+void desenhaComidas(SDL_Rect sqr[][28], SDL_Texture **comidas, SDL_Renderer *renderer, int id_sqr[][28])
+{
+    for (int i = 0; i < 31; i++)
+    {
+        for (int j = 0; j < 28; j++)
+        {
+            if (id_sqr[i][j] == FOOD)
+            {
+                SDL_Rect aux = {sqr[i][j].x, sqr[i][j].y, 16, 16};
+                SDL_RenderCopy(renderer, comidas[0], NULL, &aux);
+            }
+            else if (id_sqr[i][j] == BIG_FOOD)
+            {
+                SDL_Rect aux = {sqr[i][j].x, sqr[i][j].y, 16, 16};
+                SDL_RenderCopy(renderer, comidas[1], NULL, &aux);
+            }
+        }
+    }
 }
 
 void desenhaLinhas(Jogo *jogo, SDL_Renderer *renderer)
@@ -88,8 +138,8 @@ void desenharGhost(SDL_Rect sqr[][28], Fantasma *fant, SDL_Renderer *renderer)
 {
     for (int i = 0; i < 4; i++)
     {
-        SDL_Rect aux = {sqr[fant[i].x][fant[i].y].x-4, sqr[fant[i].x][fant[i].y].y-4, 24, 24};
-        SDL_RenderCopy(renderer, fant[i].textura, &fant[i].frames[0], &aux);
+        SDL_Rect aux = {fant[i].x, fant[i].y, 24, 24};
+        SDL_RenderCopy(renderer, fant[0].textura, &fant[i].frames[0], &aux);
     }
 }
 
@@ -100,11 +150,15 @@ void desenharJogo(Jogo *jogo, SDL_Renderer *renderer)
     SDL_Rect pacman_rect = {jogo->pacman->pos_x-4, jogo->pacman->pos_y-4, 24, 24};
     // SDL_Rect teste = {jogo->squares[14][12].x, jogo->squares[14][12].y, 28, 28};
     SDL_RenderCopy(renderer, jogo->mapa, NULL, &drecto);
+
+    desenhaComidas(jogo->squares, jogo->comidas, renderer, jogo->id_squares);
     SDL_RenderCopy(renderer, jogo->pacman->texture, &jogo->pacman->frames[0], &pacman_rect);
-    // SDL_RenderCopy(renderer, jogo->inimigos[0].textura, &jogo->inimigos->frames[0], &teste);
+
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+
     desenharGhost(jogo->squares, jogo->inimigos, renderer);
     desenhaLinhas(jogo, renderer);
+
     SDL_RenderPresent(renderer);
 }
 
@@ -259,6 +313,11 @@ bool colisao(Jogo *jogo)
                         cout << jogo->squares[i][j].h << "\n";
                         jogo->pacman->pos_i = i;
                         jogo->pacman->pos_j = j;
+                        if (jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == FOOD ||
+                            jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == BIG_FOOD)
+                            {
+                                jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] = STREET;
+                            }
                     }
                 }
                 if (jogo->id_squares[i][j] == WALL)
@@ -288,6 +347,11 @@ bool colisao(Jogo *jogo)
                         cout << jogo->squares[i][j].h << "\n";
                         jogo->pacman->pos_i = i;
                         jogo->pacman->pos_j = j;
+                        if (jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == FOOD ||
+                        jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == BIG_FOOD)
+                        {
+                            jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] = STREET;
+                        }
                     }
                 }
                 if (jogo->id_squares[i][j] == WALL)
@@ -316,6 +380,11 @@ bool colisao(Jogo *jogo)
                         cout << jogo->squares[i][j].h << "\n";
                         jogo->pacman->pos_i = i;
                         jogo->pacman->pos_j = j;
+                        if (jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == FOOD ||
+                        jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == BIG_FOOD)
+                        {
+                            jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] = STREET;
+                        }
                     }
                 }
                 if (jogo->id_squares[i][j] == WALL)
@@ -344,6 +413,11 @@ bool colisao(Jogo *jogo)
                         cout << jogo->squares[i][j].h << "\n";
                         jogo->pacman->pos_i = i;
                         jogo->pacman->pos_j = j;
+                        if (jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == FOOD ||
+                        jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] == BIG_FOOD)
+                        {
+                            jogo->id_squares[jogo->pacman->pos_i][jogo->pacman->pos_j] = STREET;
+                        }
                     }
                 }
                 if (jogo->id_squares[i][j] == WALL)
@@ -438,38 +512,444 @@ void eventosJogo(Jogo **jogo, bool &on)
         }
     }
 }
-void movimentosGhost(Jogo **jogo)
+
+// MOVIMENTOS FANTASMAS
+
+ii destPinky(int pac_i, int pac_j, int direcao, int id_sqr[][28])
 {
-    Jogo *cpy = *jogo;
-    for (int i = 0; i < 4; i++)
+    ii dest = make_pair(pac_i, pac_j);
+    int previsao = 4;
+    if (direcao == UP)
     {
-        if (cpy->inimigos[i].caminho.empty())
+        if (pac_i-previsao > 0)
         {
-            cout << "\n\nentrou switch\n";
-            ii start = make_pair(cpy->inimigos[i].x, cpy->inimigos[i].y);
-            int destX = (cpy->pacman->pos_x+12)/16;
-            int destY = (cpy->pacman->pos_y+12)/16;
-
-            cout << "dest x,y == " << destX << ", " << destY << "\n";
-
-            // if(abs((*jogo)->inimigos[i].x-destX))
-            No inicio = criaInicio(start.first, start.second, destX, destY);
-            No fim = criaFim(destX, destY);
-
-            vector<No> lst = A_star(inicio, fim, cpy->id_squares);
-            cpy->inimigos[i].caminho = cria_caminho(lst);
+            dest.first -= previsao;
+            return dest;
         }
         else
         {
-
+            previsao -= pac_i;
+            dest.first -= pac_i;
+            if (previsao > 0)
+            {
+                if (pac_j-previsao > 0)
+                {
+                    dest.second -= previsao;
+                    return dest;
+                }
+                else
+                {
+                    dest.second = 0;
+                    return dest;
+                }
+            }
         }
-
-        // while (!caminho.empty())
-        // {
-        //     // No prox = ;
-        //     // while ()
-        // }
-        // cpy->inimigos[i].tipo_mv = 2; 
     }
-    // *jogo = cpy;
+    else if (direcao == DOWN)
+    {
+        if (pac_i+previsao < 31)
+        {
+            dest.first += previsao;
+            return dest;
+        }
+        else
+        {
+            previsao -= pac_i+previsao-31;
+            dest.first += previsao;
+            if (previsao > 0)
+            {
+                if (pac_j-previsao > 0)
+                {
+                    dest.second -= previsao;
+                    return dest;
+                }
+                else
+                {
+                    dest.second = 0;
+                    return dest;
+                }
+            }
+        }
+    }
+    else if (direcao == LEFT)
+    {
+        if (pac_j-previsao > 0)
+        {
+            dest.second -= previsao;
+            return dest;
+        }
+        else
+        {
+            previsao -= pac_j;
+            dest.second -= pac_j;
+            if (previsao > 0)
+            {
+                if (pac_i-previsao > 0)
+                {
+                    dest.first -= previsao;
+                    return dest;
+                }
+                else
+                {
+                    dest.first = 0;
+                    return dest;
+                }
+            }
+        }
+    }
+    else if (direcao == RIGHT)
+    {
+        if (pac_j+previsao < 31)
+        {
+            dest.second += previsao;
+            return dest;
+        }
+        else
+        {
+            previsao -= pac_i+previsao-31;
+            dest.second += previsao;
+            if (previsao > 0)
+            {
+                if (pac_i-previsao > 0)
+                {
+                    dest.first -= previsao;
+                    return dest;
+                }
+                else
+                {
+                    dest.first = 0;
+                    return dest;
+                }
+            }
+        }
+    }
+}
+
+Jogo *chase(Jogo *jogo, int id)
+{
+    // cout << "blinky x,y == " << jogo->inimigos[BLINKY].x << ", " << jogo->inimigos[BLINKY].y << "\n";
+    switch(id)
+    {
+        case BLINKY:
+        {
+            int destX = (jogo->pacman->pos_y+12)/16;
+            int destY = (jogo->pacman->pos_x+12)/16;
+            if (jogo->inimigos[BLINKY].caminho.empty())
+            {
+                // cout << "\n\nentrou switch\n";
+                ii start = make_pair(jogo->inimigos[BLINKY].i, jogo->inimigos[BLINKY].j);
+                
+
+                // cout << "dest x,y == " << destX << ", " << destY << "\n";
+
+                // if(abs((*jogo)->inimigos[i].x-destX))
+                No inicio = criaInicio(start.first, start.second, destX, destY);
+                *jogo->inimigos[BLINKY].prox = inicio;
+                No fim = criaFim(destX, destY);
+
+                vector<No> lst = A_star(inicio, fim, jogo->id_squares);
+                jogo->inimigos[BLINKY].caminho = cria_caminho(lst);
+                
+                *jogo->inimigos[BLINKY].prox = jogo->inimigos[BLINKY].caminho.back();
+            }
+            else
+            {
+                ii prox_centro = center(jogo->squares[jogo->inimigos[BLINKY].i][jogo->inimigos[BLINKY].j].x, 
+                                                    jogo->squares[jogo->inimigos[BLINKY].i][jogo->inimigos[BLINKY].j].y,
+                                                    16, 
+                                                    16);
+
+                jogo->inimigos[BLINKY].centro = center(jogo->inimigos[BLINKY].x,
+                                                        jogo->inimigos[BLINKY].y, 
+                                                        24,
+                                                        24);
+
+                
+                if (prox_centro.first == jogo->inimigos[BLINKY].centro.first &&
+                                                prox_centro.second == jogo->inimigos[BLINKY].centro.second)
+
+                {
+                    // cout << "Entrou centros iguais\n";
+                    *jogo->inimigos[BLINKY].prox = jogo->inimigos[BLINKY].caminho.back();
+                    jogo->inimigos[BLINKY].i = jogo->inimigos[BLINKY].prox->i;
+                    jogo->inimigos[BLINKY].j = jogo->inimigos[BLINKY].prox->j;
+                    jogo->inimigos[BLINKY].caminho.pop_back();
+                    
+                }
+                else
+                {
+                    // cout << "Entrou centros dif\n";
+                    // LEFT                                                                                
+                    if (jogo->inimigos[BLINKY].centro.first > prox_centro.first &&
+                                                            jogo->inimigos[BLINKY].centro.second == prox_centro.second)
+                    {
+                        // cout << "Entrou left\n";
+                        jogo->inimigos[BLINKY].x -= jogo->inimigos[BLINKY].vel;
+                        
+
+                    }
+                    // RIGHT
+                    else if (jogo->inimigos[BLINKY].centro.first < prox_centro.first &&
+                                                            jogo->inimigos[BLINKY].centro.second == prox_centro.second)
+                    {
+                        // cout << "Entrou right\n";
+                        jogo->inimigos[BLINKY].x += jogo->inimigos[BLINKY].vel;
+                        
+                    }
+                    // UP
+                    else if (jogo->inimigos[BLINKY].centro.first == prox_centro.first &&
+                                                            jogo->inimigos[BLINKY].centro.second > prox_centro.second)
+                    {
+                        // cout << "Entrou up\n";
+                        jogo->inimigos[BLINKY].y -= jogo->inimigos[BLINKY].vel;
+                    }
+                    // DOWN
+                    else if (jogo->inimigos[BLINKY].centro.first == prox_centro.first &&
+                                                            jogo->inimigos[BLINKY].centro.second < prox_centro.second)
+                    {
+                        // cout << "Entrou down\n";
+                        jogo->inimigos[BLINKY].y += jogo->inimigos[BLINKY].vel;
+                       
+                    }
+                }
+                
+            }
+            
+            break;
+        }
+        case PINKY:
+        {
+            int destX = (jogo->pacman->pos_y+12)/16;
+            int destY = (jogo->pacman->pos_x+12)/16;
+
+            ii destControl = destPinky(destX, destY, jogo->pacman->direcao, jogo->id_squares);
+            destX = destControl.first;
+            destY = destControl.second;
+
+            if (jogo->inimigos[PINKY].caminho.empty())
+            {
+                cout << "\n\nentrou switch\n";
+                ii start = make_pair(jogo->inimigos[PINKY].i, jogo->inimigos[PINKY].j);
+                
+
+                cout << "dest x,y == " << destX << ", " << destY << "\n";
+
+                // if(abs((*jogo)->inimigos[i].x-destX))
+                No inicio = criaInicio(start.first, start.second, destX, destY);
+                *jogo->inimigos[PINKY].prox = inicio;
+                No fim = criaFim(destX, destY);
+
+                vector<No> lst = A_star(inicio, fim, jogo->id_squares);
+                jogo->inimigos[PINKY].caminho = cria_caminho(lst);
+                
+                *jogo->inimigos[PINKY].prox = jogo->inimigos[PINKY].caminho.back();
+            }
+            else
+            {
+                ii prox_centro = center(jogo->squares[jogo->inimigos[PINKY].i][jogo->inimigos[PINKY].j].x, 
+                                                    jogo->squares[jogo->inimigos[PINKY].i][jogo->inimigos[PINKY].j].y,
+                                                    16, 
+                                                    16);
+
+                jogo->inimigos[PINKY].centro = center(jogo->inimigos[PINKY].x,
+                                                        jogo->inimigos[PINKY].y, 
+                                                        24,
+                                                        24);
+
+                
+                if (prox_centro.first == jogo->inimigos[PINKY].centro.first &&
+                                                prox_centro.second == jogo->inimigos[PINKY].centro.second)
+
+                {
+                    // cout << "Entrou centros iguais\n";
+                    *jogo->inimigos[PINKY].prox = jogo->inimigos[PINKY].caminho.back();
+                    jogo->inimigos[PINKY].i = jogo->inimigos[PINKY].prox->i;
+                    jogo->inimigos[PINKY].j = jogo->inimigos[PINKY].prox->j;
+                    jogo->inimigos[PINKY].caminho.pop_back();
+                    
+                }
+                else
+                {
+                    // cout << "Entrou centros dif\n";
+                    // LEFT                                                                                
+                    if (jogo->inimigos[PINKY].centro.first > prox_centro.first &&
+                                                            jogo->inimigos[PINKY].centro.second == prox_centro.second)
+                    {
+                        // cout << "Entrou left\n";
+                        jogo->inimigos[PINKY].x -= jogo->inimigos[PINKY].vel;
+                        
+
+                    }
+                    // RIGHT
+                    else if (jogo->inimigos[PINKY].centro.first < prox_centro.first &&
+                                                            jogo->inimigos[PINKY].centro.second == prox_centro.second)
+                    {
+                        // cout << "Entrou right\n";
+                        jogo->inimigos[PINKY].x += jogo->inimigos[PINKY].vel;
+                        
+                    }
+                    // UP
+                    else if (jogo->inimigos[PINKY].centro.first == prox_centro.first &&
+                                                            jogo->inimigos[PINKY].centro.second > prox_centro.second)
+                    {
+                        // cout << "Entrou up\n";
+                        jogo->inimigos[PINKY].y -= jogo->inimigos[PINKY].vel;
+                       
+                    }
+                    // DOWN
+                    else if (jogo->inimigos[PINKY].centro.first == prox_centro.first &&
+                                                            jogo->inimigos[PINKY].centro.second < prox_centro.second)
+                    {
+                        cout << "Entrou down\n";
+                        jogo->inimigos[PINKY].y += jogo->inimigos[PINKY].vel;
+                       
+                    }
+                    cout << "\n\nprox center x,y == " << prox_centro.first << ", " << prox_centro.second << "\n";
+                    cout << "prox center ghost x,y == " << jogo->inimigos[PINKY].centro.first << 
+                            ", " << 
+                            jogo->inimigos[PINKY].centro.second << "\n";
+                    
+                    // cout << "pac ghost: " << jogo->pacman->pos_i << ", " << jogo->pacman->pos_j << "\n";
+                }
+                
+            }
+            break;
+        }
+        case INKY:
+        {
+            int destX = (jogo->pacman->pos_y+12)/16;
+            int destY = (jogo->pacman->pos_x+12)/16;
+            if (jogo->inimigos[INKY].caminho.empty())
+            {
+                // cout << "\n\nentrou switch\n";
+                ii start = make_pair(jogo->inimigos[INKY].i, jogo->inimigos[INKY].j);
+                
+
+                // cout << "dest x,y == " << destX << ", " << destY << "\n";
+
+                // if(abs((*jogo)->inimigos[i].x-destX))
+                No inicio = criaInicio(start.first, start.second, destX, destY);
+                *jogo->inimigos[INKY].prox = inicio;
+                No fim = criaFim(destX, destY);
+
+                vector<No> lst = A_star(inicio, fim, jogo->id_squares);
+                jogo->inimigos[INKY].caminho = cria_caminho(lst);
+                
+                *jogo->inimigos[INKY].prox = jogo->inimigos[INKY].caminho.back();
+            }
+            else
+            {
+                ii prox_centro = center(jogo->squares[jogo->inimigos[INKY].i][jogo->inimigos[INKY].j].x, 
+                                                    jogo->squares[jogo->inimigos[INKY].i][jogo->inimigos[INKY].j].y,
+                                                    16, 
+                                                    16);
+
+                jogo->inimigos[INKY].centro = center(jogo->inimigos[INKY].x,
+                                                        jogo->inimigos[INKY].y, 
+                                                        24,
+                                                        24);
+
+                
+                if (prox_centro.first == jogo->inimigos[INKY].centro.first &&
+                                                prox_centro.second == jogo->inimigos[INKY].centro.second)
+
+                {
+                    // cout << "Entrou centros iguais\n";
+                    *jogo->inimigos[INKY].prox = jogo->inimigos[INKY].caminho.back();
+                    jogo->inimigos[INKY].i = jogo->inimigos[INKY].prox->i;
+                    jogo->inimigos[INKY].j = jogo->inimigos[INKY].prox->j;
+                    jogo->inimigos[INKY].caminho.pop_back();
+                    
+                }
+                else
+                {
+                    // cout << "Entrou centros dif\n";
+                    // LEFT                                                                                
+                    if (jogo->inimigos[INKY].centro.first > prox_centro.first &&
+                                                            jogo->inimigos[INKY].centro.second == prox_centro.second)
+                    {
+                        // cout << "Entrou left\n";
+                        jogo->inimigos[INKY].x -= jogo->inimigos[INKY].vel;
+                        // if (prox_centro.first == jogo->inimigos[INKY].centro.first &&
+                        //                         prox_centro.second == jogo->inimigos[INKY].centro.second)
+                        // {
+                        //     jogo->inimigos[INKY].i = jogo->inimigos[INKY].prox->i;
+                        //     jogo->inimigos[INKY].j = jogo->inimigos[INKY].prox->j;
+                        // }
+
+                    }
+                    // RIGHT
+                    else if (jogo->inimigos[INKY].centro.first < prox_centro.first &&
+                                                            jogo->inimigos[INKY].centro.second == prox_centro.second)
+                    {
+                        // cout << "Entrou right\n";
+                        jogo->inimigos[INKY].x += jogo->inimigos[INKY].vel;
+                        // if (prox_centro.first == jogo->inimigos[INKY].centro.first &&
+                        //                         prox_centro.second == jogo->inimigos[INKY].centro.second)
+                        // {
+                        //     jogo->inimigos[INKY].i = jogo->inimigos[INKY].prox->i;
+                        //     jogo->inimigos[INKY].j = jogo->inimigos[INKY].prox->j;
+                        // }
+                    }
+                    // UP
+                    else if (jogo->inimigos[INKY].centro.first == prox_centro.first &&
+                                                            jogo->inimigos[INKY].centro.second > prox_centro.second)
+                    {
+                        // cout << "Entrou up\n";
+                        jogo->inimigos[INKY].y -= jogo->inimigos[INKY].vel;
+                        // if (prox_centro.first == jogo->inimigos[INKY].centro.first &&
+                        //                         prox_centro.second == jogo->inimigos[INKY].centro.second)
+                        // {
+                        //     jogo->inimigos[INKY].i = jogo->inimigos[INKY].prox->i;
+                        //     jogo->inimigos[INKY].j = jogo->inimigos[INKY].prox->j;
+                        // }
+                    }
+                    // DOWN
+                    else if (jogo->inimigos[INKY].centro.first == prox_centro.first &&
+                                                            jogo->inimigos[INKY].centro.second < prox_centro.second)
+                    {
+                        // cout << "Entrou down\n";
+                        jogo->inimigos[INKY].y += jogo->inimigos[INKY].vel;
+                       
+                    }
+                    // cout << "\n\nprox center x,y == " << prox_centro.first << ", " << prox_centro.second << "\n";
+                    // cout << "prox center ghost x,y == " << jogo->inimigos[INKY].centro.first << 
+                    //         ", " << 
+                    //         jogo->inimigos[INKY].centro.second << "\n";
+                    
+                    // cout << "pac ghost: " << jogo->pacman->pos_i << ", " << jogo->pacman->pos_j << "\n";
+                }
+                
+            }
+            break;
+        }
+        case CLYDE:
+        {
+            break;
+        }
+    }
+
+    return jogo;
+}
+Jogo * movimentosGhost(Jogo *jogo)
+{
+    jogo = chase(jogo, BLINKY);
+    jogo = chase(jogo, PINKY);
+    return jogo;
+}
+
+void terminaJogo(Jogo *jogo)
+{
+    SDL_DestroyTexture(jogo->mapa);
+    SDL_DestroyTexture(jogo->pacman->texture);
+    for (int i = 0; i < 4; i++)
+    {
+        SDL_DestroyTexture(jogo->inimigos[i].textura);
+        delete[] jogo->inimigos[i].prox;
+    }
+    SDL_DestroyTexture(jogo->comidas[0]);
+    SDL_DestroyTexture(jogo->comidas[1]);
+    free(jogo->comidas);
+    delete[] jogo->pacman->frames;
+    SDL_DestroyTexture(jogo->mapa);
 }

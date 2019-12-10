@@ -13,8 +13,8 @@ Fantasma criaFantasma(Fantasma fant, SDL_Renderer *renderer, int id)
 
     for (int i = 0; i < 8; i++)
     {
-        fant.frames[i] = {i*16, id*16, (i+1)*16, (id+1)*16};
-        cout << "Rect = " << i*16 << " " << id*16 << " " << (i+1)*16 << " " << (id+1)*16 << "\n";
+        fant.frames[i] = {i*16, id*16, 16, 16};
+        cout << "Rect---id = " << i*16 << " " << id*16 << " " << (i+1)*16 << " " << (id+1)*16 << "--- id = " << id << "\n";
     }
 
     SDL_FreeSurface(surface);

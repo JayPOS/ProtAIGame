@@ -12,16 +12,17 @@ struct ghost
     SDL_Rect frames[8];
     int i, j; //rect
     int x, y; //coordinates
-    ii center; // center of the ghost
+    ii centro; // center of the ghost
     int vel;
     int pts, cor, dir;
     vector<No> caminho;
+    No *prox;
 };
 
-const int RED = 0;
-const int PINK = 1;
-const int BLUE = 2;
-const int YELLOW = 3;
+const int BLINKY = 0; // RED
+const int PINKY = 1; // PINK
+const int INKY = 2; // BLUE
+const int CLYDE = 3; // ORANGE
 
 
 Fantasma criaFantasma(Fantasma fant, SDL_Renderer *renderer, int id);   

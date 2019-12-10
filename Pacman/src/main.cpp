@@ -26,8 +26,16 @@ void rodaJogo(SDL_Window *janela, SDL_Renderer *renderer)
         desenharJogo(jogo, renderer);
         eventosJogo(&jogo, on);
         //movimento fantasma
-        movimentosGhost(&jogo);
+        jogo = movimentosGhost(jogo);
     }
+    ii sq_centro = center(jogo->squares[jogo->inimigos[BLINKY].i][jogo->inimigos[BLINKY].j].x, 
+                        jogo->squares[jogo->inimigos[BLINKY].i][jogo->inimigos[BLINKY].j].y,
+                        16, 16);
+    jogo->inimigos[BLINKY].centro = center(jogo->inimigos[BLINKY].x, jogo->inimigos[BLINKY].y, 24 ,24);
+    cout << "center ghost == " << jogo->inimigos[BLINKY].centro.first << ", " << 
+                                    jogo->inimigos[BLINKY].centro.second << "\n";
+    cout << "center sq ghost == " << sq_centro.first << ", " << sq_centro.second << "\n";
+    terminaJogo(jogo);
 }
 
 void rodaEditor(SDL_Window *janela, SDL_Renderer *renderer)
